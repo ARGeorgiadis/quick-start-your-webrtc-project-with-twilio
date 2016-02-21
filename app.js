@@ -7,6 +7,7 @@ var conversation;
 var conversationsClient;
 var fid;
 var firebase;
+var disconnected = false;
 
 // CHECK IF A WEBRTC BROWSER 
 if (!navigator.webkitGetUserMedia && !navigator.mozGetUserMedia) {
@@ -93,17 +94,21 @@ function conversationStarted(convo) {
         tlog('You are connected with: <strong>' + participant.identity + '</strong>');
     });
     conversation.on('participantDisconnected', function(participant) {
-        var uid = firebase.push(id);
-        fid = uid.toString();
-        new Firebase(fid).onDisconnect().remove();
+		if(!disconnected){
+			var uid = firebase.push(id);
+			fid = uid.toString();
+			new Firebase(fid).onDisconnect().remove();
+		}
         $('.' + participant.identity).remove();
         tlog('<strong>' + participant.identity + '</strong> has disconnected from this chat.');
         $('.users-list').empty();
-        firebase.once('child_added', function(child) {
-            if (child.val() != id) {
-                $('.users-list').append('<div class="user ' + child.val() + '"><span>' + child.val() + '</span><button class="b-connect" id="' + child.val() + '">Call Now</button></div>');
-            }
-        });
+		if(firebase){
+			firebase.once('child_added', function(child) {
+				if (child.val() != id) {
+					$('.users-list').append('<div class="user ' + child.val() + '"><span>' + child.val() + '</span><button class="b-connect" id="' + child.val() + '">Call Now</button></div>');
+				}
+			});
+		}
     });
 }
 
@@ -111,6 +116,8 @@ function conversationStarted(convo) {
 $('#disconnect').on('click', function() {
     new Firebase(fid).remove();
     firebase.off();
+	firebase = null;
+	disconnected = true;
     $('#disconnect').hide();
     $('#start, #id').fadeIn();
     $('#status').css({
@@ -118,7 +125,7 @@ $('#disconnect').on('click', function() {
     }).text('DISCONNETED').fadeOut().fadeIn().fadeOut().fadeIn().fadeOut().fadeIn();
     $('.users-list').empty();
     if (conversation) {
-        conversation.localMedia.stop();
+        lmedia.stop();
         conversation.disconnect();
         conversationsClient = null;
         conversation = null;
