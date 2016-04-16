@@ -7,7 +7,7 @@ http://www.sitepoint.com/real-time-video-chat-room
 ## Requirements
 
 * A [Twilio account](https://www.twilio.com/try-twilio)
-* A [Firebase account](ttps://www.firebase.com/account/)
+* A [Firebase account](https://www.firebase.com/account/)
 
 ## License
 
